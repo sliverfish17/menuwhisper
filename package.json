@@ -1,0 +1,11 @@
+{
+"name": "menuwhisper",
+"private": true,
+"version": "0.1.0",
+"workspaces": ["apps/*", "packages/*"],
+"scripts": {
+"dev:web": "pnpm --filter @menuwhisper/web dev",
+"build:web": "pnpm --filter @menuwhisper/web build",
+"lint": "pnpm -r lint"
+}
+}
