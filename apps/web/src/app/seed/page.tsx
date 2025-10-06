@@ -1,54 +1,94 @@
-"use server";
+"use client";
 
-async function seedSample() {
-  const api = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-  const res = await fetch(`${api}/menu/seed`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    cache: "no-store",
-    body: JSON.stringify({
-      restaurant_name: "Pasta Mia",
-      items: [
-        {
-          title: "Spaghetti Carbonara",
-          desc: "Creamy sauce, pancetta",
-          price_cents: 4500,
-          currency: "PLN",
-        },
-        {
-          title: "Margherita Pizza",
-          desc: "Tomato, mozzarella, basil",
-          price_cents: 3800,
-          currency: "PLN",
-        },
-      ],
-    }),
-  });
-  if (!res.ok) throw new Error(`Seed failed: ${res.status} ${res.statusText}`);
-  return res.json() as Promise<{ restaurant_id: string; count: number }>;
-}
+import { API } from "@/lib/api";
+import { useState } from "react";
 
-export default async function Page() {
-  const data = await seedSample();
+export default function SeedPage() {
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  async function seedDemo() {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`${API}/menu/seed`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          restaurant_name: "Demo Restaurant",
+          items: [
+            {
+              title: "Spaghetti Carbonara",
+              desc: "Creamy pasta with bacon and eggs",
+              price_cents: 4500,
+              currency: "PLN",
+            },
+            {
+              title: "Margherita Pizza",
+              desc: "Tomato sauce, mozzarella, fresh basil",
+              price_cents: 3800,
+              currency: "PLN",
+            },
+            {
+              title: "Caesar Salad",
+              desc: "Romaine lettuce, parmesan, croutons",
+              price_cents: 3200,
+              currency: "PLN",
+            },
+            {
+              title: "Beef Steak",
+              desc: "Grilled ribeye with herbs",
+              price_cents: 8500,
+              currency: "PLN",
+            },
+            {
+              title: "Chocolate Cake",
+              desc: "Rich chocolate dessert",
+              price_cents: 2500,
+              currency: "PLN",
+            },
+          ],
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.detail || res.statusText);
+      setResult(data);
+    } catch (e: any) {
+      setError(e.message || String(e));
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
-    <main className="p-8 space-y-4">
-      <h1 className="text-2xl font-bold">Seed OK</h1>
-      <p>
-        Created items: <b>{data.count}</b>
-      </p>
-      <p>
-        Restaurant ID:{" "}
-        <code className="px-2 py-1 bg-gray-100 rounded">
-          {data.restaurant_id}
-        </code>
-      </p>
-      <a
-        className="inline-block px-3 py-2 rounded border"
-        href={`/menu/${data.restaurant_id}`}
+    <main className="p-8 max-w-2xl mx-auto space-y-4">
+      <h1 className="text-2xl font-bold">Seed Demo Data</h1>
+
+      <button
+        onClick={seedDemo}
+        disabled={loading}
+        className="px-4 py-2 border rounded bg-blue-50 hover:bg-blue-100"
       >
-        View menu →
-      </a>
+        {loading ? "Creating..." : "Create Demo Restaurant"}
+      </button>
+
+      {error && <p className="text-red-600">{error}</p>}
+
+      {result && (
+        <div className="border rounded p-4">
+          <p className="mb-2">
+            Created restaurant with <b>{result.count}</b> items
+          </p>
+          <a
+            className="underline text-blue-600"
+            href={`/menu/${result.restaurant_id}`}
+          >
+            View Menu →
+          </a>
+        </div>
+      )}
     </main>
   );
 }

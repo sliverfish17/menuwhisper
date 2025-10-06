@@ -3,18 +3,10 @@ SQLAlchemy engine/session + Base.
 """
 
 from __future__ import annotations
-from contextlib import asynccontextmanager
-from typing import AsyncIterator
 
-
-from sqlalchemy import text
-from sqlalchemy.orm import DeclarativeBase, sessionmaker
+from app.settings import settings
 from sqlalchemy import create_engine
-from fastapi import Depends
-from fastapi import FastAPI
-
-
-from .settings import settings
+from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
 
 class Base(DeclarativeBase):

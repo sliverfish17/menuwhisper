@@ -3,9 +3,22 @@
 "private": true,
 "version": "0.1.0",
 "workspaces": ["apps/*", "packages/*"],
+"devDependencies": {
+"concurrently": "^8.2.2"
+},
 "scripts": {
+"dev": "concurrently \"pnpm run dev:api\" \"pnpm run dev:web\" \"pnpm run dev:infra\"",
+"dev:api": "cd apps/api && export PATH=\"/Users/wesoftyou/.local/bin:$PATH\" && poetry run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload",
 "dev:web": "pnpm --filter @menuwhisper/web dev",
+"dev:infra": "cd infra && docker-compose up -d",
+"dev:infra:logs": "cd infra && docker-compose logs -f",
+"build": "pnpm run build:web && pnpm run build:api",
 "build:web": "pnpm --filter @menuwhisper/web build",
-"lint": "pnpm -r lint"
+"build:api": "cd infra && docker-compose up -d --build api",
+"stop": "cd infra && docker-compose down",
+"clean": "cd infra && docker-compose down -v && docker system prune -f",
+"lint": "pnpm -r lint",
+"seed": "curl -X POST http://localhost:8000/menu/seed_and_embed -H 'Content-Type: application/json' -d '{\"restaurant_name\": \"Demo Restaurant\", \"items\": [{\"title\": \"Pasta Carbonara\", \"desc\": \"Creamy pasta with bacon\", \"price_cents\": 2500, \"currency\": \"USD\"}]}'",
+"recommend": "curl 'http://localhost:8000/recommend?q=pasta&k=5'"
 }
 }

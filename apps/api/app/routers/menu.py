@@ -1,9 +1,10 @@
+from typing import List
+
+from app.db import get_db
+from app.models import MenuItem, MenuItemEmbedding, Restaurant
+from app.normalizer import normalize_to_en
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from typing import List
-from ..db import get_db
-from ..models import Restaurant, MenuItem
-from sqlalchemy.orm import Session
 
 router = APIRouter(prefix="/menu", tags=["menu"])
 
@@ -27,20 +28,21 @@ async def seed_restaurant(body: SeedRequest):
 
     try:
         # Create restaurant
-        rest = Restaurant(
-            name=body.restaurant_name,
-            name_raw=body.restaurant_name,
-        )
+        rest = Restaurant(name=body.restaurant_name, name_raw=body.restaurant_name)
+
         db.add(rest)
         db.flush()  # Get the ID without committing
 
         # Create menu items
         for it in body.items:
+            t_norm, d_norm = normalize_to_en(it.title, it.desc, lang_hint="auto")
             item = MenuItem(
                 restaurant_id=rest.id,
                 title=it.title,
                 title_raw=it.title,
                 description_raw=it.desc,
+                title_norm=t_norm,
+                description_norm=d_norm,
                 price_cents=it.price_cents,
                 currency=it.currency,
             )
@@ -88,6 +90,55 @@ async def get_menu(restaurant_id: str):
     except HTTPException:
         raise
     except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        db.close()
+
+
+@router.post("/seed_and_embed")
+async def seed_and_embed_restaurant(body: SeedRequest):
+    """Seed a restaurant with menu items and create embeddings"""
+    db = next(get_db())
+
+    try:
+        # Create restaurant
+        rest = Restaurant(name=body.restaurant_name, name_raw=body.restaurant_name)
+
+        db.add(rest)
+        db.flush()  # Get the ID without committing
+
+        # Create menu items with embeddings
+        for it in body.items:
+            t_norm, d_norm = normalize_to_en(it.title, it.desc, lang_hint="auto")
+            item = MenuItem(
+                restaurant_id=rest.id,
+                title=it.title,
+                title_raw=it.title,
+                description_raw=it.desc,
+                title_norm=t_norm,
+                description_norm=d_norm,
+                price_cents=it.price_cents,
+                currency=it.currency,
+            )
+            db.add(item)
+            db.flush()  # Get the item ID
+
+            # Create embedding (dummy for now - replace with actual embedding model)
+            # In production, you'd use sentence-transformers or similar
+            dummy_embedding = [0.1] * 384  # 384-dimensional vector
+
+            embedding = MenuItemEmbedding(
+                menu_item_id=item.id,
+                embedding=dummy_embedding,
+                embedding_model="dummy-model-v1",
+            )
+            db.add(embedding)
+
+        db.commit()
+        return {"restaurant_id": str(rest.id), "count": len(body.items)}
+
+    except Exception as e:
+        db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
     finally:
         db.close()

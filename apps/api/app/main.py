@@ -1,7 +1,10 @@
+from app.routers import feedback as feedback_router
+from app.routers import ingest as ingest_router
+from app.routers import menu as menu_router
+from app.routers import recommend as recommend_router
+from app.settings import settings
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .settings import settings
-from .routers import menu as menu_router
 
 app = FastAPI(title="MenuWhisper API")
 
@@ -21,3 +24,6 @@ async def health():
 
 
 app.include_router(menu_router.router)
+app.include_router(recommend_router.router)
+app.include_router(ingest_router.router)
+app.include_router(feedback_router.router)
