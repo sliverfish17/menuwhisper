@@ -1,0 +1,17 @@
+{
+  "python.defaultInterpreterPath": "./apps/api/.venv/bin/python",
+  "python.formatting.provider": "black",
+  "python.formatting.blackPath": "./apps/api/.venv/bin/black",
+  "python.linting.enabled": true,
+  "python.linting.ruffEnabled": true,
+  "python.linting.ruffPath": "./apps/api/.venv/bin/ruff",
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": "explicit",
+    "source.fixAll.ruff": "explicit"
+  },
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.black-formatter",
+    "editor.formatOnSave": true
+  }
+}

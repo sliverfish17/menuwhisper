@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .settings import settings
+from .routers import menu as menu_router
 
 app = FastAPI(title="MenuWhisper API")
 
@@ -13,6 +14,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 @app.get("/health")
 async def health():
     return {"status": "ok", "env": settings.APP_ENV}
+
+
+app.include_router(menu_router.router)
